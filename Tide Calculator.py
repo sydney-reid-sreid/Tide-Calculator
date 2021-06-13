@@ -230,3 +230,8 @@ def nextTide(reqTime, tides):
         print("the next low tide is in", nextTideHours, "hours and", nextTideMinutes)
     
     return()
+
+###############################################################################################################################################################################
+
+if __name__ == "__main__":
+    main()
