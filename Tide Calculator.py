@@ -6,30 +6,57 @@ FIRSTMOON = 1857600000  #first full moon after Jan 1 1970 in milliseconds
 MOONCYCLE = 2551442900  #length of a full cycle of the moon in milliseconds
 DAYLENGTH = 86400000    #length of a full day in milliseconds
 
-
 #collects the user input needed to calculate the tides based on the method they choose
 def main():
-    calBy = getCalBy()
-    if(calBy == "location"):
-        location = getLocation
+    tidePosition = getCalBy()
+    if(tidePosition == "location"):
+        location = getLocation()
+        tidePosition = str(location[2].lower())
+        currentTime = location[0]
+        locationName = location[1]
     else:
-        currentTime = getHighLowTime
+        currentTime = getHighLowTime("known")
+    if(tidePosition == "high"):
+        tidePosition = 1
+    else:
+        tidePosition = 0
+    requestInfo = getHighLowTime("requested")
+    requestCombo = requestInfo[0]
+    requestDate = requestInfo[1]
+    requestTime = requestInfo[2]
+    #working with the time
+    timeList = requestTime.split(":")
+    hour = int(timeList[0]) * 60*60*1000
+    minute = int(timeList[1]) *60*1000
+    #working with the date
+    dateList = requestDate.split("/")
+    day = int(dateList[0])
+    month = int(dateList[1])
+    year = int(dateList[2])
+    currentDateTime = datetime.datetime(year, month, day) #from https://www.kite.com/python/answers/how-to-get-the-number-of-seconds-since-the-epoch-from-a-datetime-object-in-python
+    currentTimeSince = (currentDateTime.timestamp() - 18000) * 1000
+    tideList = dailyTide(tidePosition, currentTime, requestDate)
+    #add for each loop for printing tide list
+    springTide = springTide(requestDate)
+    nextTide = nextTide(requestTime, tideList)
+    print(calBy)
+
     
 #determines which method (location or know high/low tide time) the user would like to use to calculate the tide
-def calBy():
+def getCalBy():
     flag = True
     while(flag == True):    #loops until valid input is given
         calBy = input("Would you like to calculate the tide by location or by a known high/low tide?(type \"location\", \"high\", \"low\" or \"q\" to quit): ")
         calBy = calBy.lower()
         #looks for an instance of any valid input but does not allow multiple instances of different valid inputs or q
-        if(((calBy.contains("high") or calBy.contains("low")) ^ calBy.contains("location")) and not calBy.contains("q")):
-            if(calBy.contains("location") == True):
+        if((("high" in calBy) ^ ("low" in calBy) ^ ("location" in calBy)) and not ("q" in calBy)):
+            if(("location" in calBy) == True):
                 return "location"
-            elif(calBy.contains("high") == True):
+            elif(("high" in calBy) == True):
                 return "high"
             else:
                 return "low"
-        elif(calBy.contains("q")):  #checking if the user wants to quit the program
+        elif(("q" in calBy)):  #checking if the user wants to quit the program
             quit()
         else:  
             print("Your input was unreadable, please try again.")
@@ -37,28 +64,73 @@ def calBy():
 
 #determines if the location being entered is a known location, if not ends the program
 def getLocation():
-    location = input("Please enter the country of the location in the form: United States  or  Australia: ")
-    location = location.upper()
-    placeholder = False
-    if(placeholder):
-        #some sort of file i/o to check if it is in the file
-    else:
-        quit()
-    
-
-#gets user input for the time the user knows is a high / low tide
-def getHighLowTime():
     flag = True
     while(flag == True):
-        time = input("Please enter the date of the known tide time (use format DD/MM/YYYY ), or enter \"q\" to quit: ")
-        time = time.strip(" ")
-        if((len(time) == 10) and (time[2] == "/") and (time[5] == "/")):    #checking for proper format
+        location = input("Please enter the full location, do not use abbreviations. Use the format \"United States of America, Hawaii, Banzai Pipeline\", or \"q\" to quit :  ")
+        if(location == "q"):
+            quit()
+        location = location.upper()
+        location = location.strip(" ")
+        location = location.split(",")
+        with open ("TideData.txt", "r") as f:
+            #from an old assignment
+            for line in f:
+                line = line.strip(" ")
+                line = line.split(",")
+                if((line[0] == location[0]) and (line[1] == location [1]) and (line[2] == location[2])):
+                    locationData[0] = timeHelper(line[3], line[4])
+                    locationData[1] = ("" + line[2] + ", " + line[1] + ", " + line[0])
+                    locationData[2] = location[5]
+                    return locationData
+            print("It appears that it is not in our file, you can try checking your formatting or spelling and try again or quit.")
+    
+
+#gets user input for the time the user knows is a high / low tide and also used for getting requested times
+def getHighLowTime(known):
+    flag = True
+    while(flag == True):
+        date = input("Please enter the date of the " + known +" tide time (use format DD/MM/YYYY ), or enter \"q\" to quit: ")
+        date = date.strip(" ")
+        if((len(date) == 10) and (date[2] == "/") and (date[5] == "/")):    #checking for proper format
             flag = False
-            print("we will deal with this in a minute")
-        elif(time.lower() == "q"):
+        elif(date.lower() == "q"):
             quit()
         else:
-            print("The format was unreadable, please follow the instructions carefully and try again, or enter \"q\" to quit")
+            print("The format was unreadable, please follow the instructions carefully and try again")
+    flag = True
+    while(flag == True):
+        time = input("Please enter the time of the " + known + " tide time in UTC (use format 24 hour time, eg. 16:08 or 05:23), or \"q\" to quit: ")
+        time = time.strip(" ")
+        if((len(time) == 5) and (time[2]) == ":"):
+            flag = False
+            currentTimeSince = timeHelper(date, time)
+        elif(time == "q"):
+            quit()
+        else:
+            print("Input was unreadable, please follow the instructions carfully and try again.")
+    if(known == "requested"):
+        returnVals[0] = int(currentTimeSince)
+        returnVals[1] = date
+        returnVals[2] = time
+        return returnVals
+    return int(currentTimeSince)
+
+#helps calculate the time since epoch for the given date and time
+def timeHelper(date, time):
+    #working with the date
+    dateList = date.split("/")
+    day = int(dateList[0])
+    month = int(dateList[1])
+    year = int(dateList[2])
+
+    #working with the time
+    timeList = time.split(":")
+    hour = int(timeList[0])
+    minute = int(timeList[1])
+
+    currentDateTime = datetime.datetime(year, month, day, hour, minute) #from https://www.kite.com/python/answers/how-to-get-the-number-of-seconds-since-the-epoch-from-a-datetime-object-in-python
+    currentTimeSince = (currentDateTime.timestamp() - 18000) * 1000 #-18000 for correction, 1000 for conversion to milliseconds
+    return int(currentTimeSince)
 
 ################################################################################################################################################################# 
 
