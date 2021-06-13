@@ -6,6 +6,8 @@ FIRSTMOON = 1857600000  #first full moon after Jan 1 1970 in milliseconds
 MOONCYCLE = 2551442900  #length of a full cycle of the moon in milliseconds
 DAYLENGTH = 86400000    #length of a full day in milliseconds
 
+#testing pull requests
+
 #collects the user input needed to calculate the tides based on the method they choose
 def main():
     calBy = getCalBy()
