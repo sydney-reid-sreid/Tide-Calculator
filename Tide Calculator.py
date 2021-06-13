@@ -38,8 +38,9 @@ def calBy():
 def getLocation():
     location = input("Please enter the country of the location in the form: United States  or  Australia: ")
     location = location.upper()
-    if():
-        file#some sort of file i/o to check if it is in the file
+    placeholder = False
+    if(placeholder):
+        #some sort of file i/o to check if it is in the file
     else:
         quit()
     
