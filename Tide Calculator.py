@@ -16,6 +16,7 @@ def main():
         locationName = location[1]
     else:
         currentTime = getHighLowTime("known")
+        locationName = "the given location"
     if(tidePosition == "high"):
         tidePosition = 1
     else:
@@ -28,18 +29,38 @@ def main():
     timeList = requestTime.split(":")
     hour = int(timeList[0]) * 60*60*1000
     minute = int(timeList[1]) *60*1000
+    totalTime = hour + minute
     #working with the date
     dateList = requestDate.split("/")
     day = int(dateList[0])
     month = int(dateList[1])
     year = int(dateList[2])
-    currentDateTime = datetime.datetime(year, month, day) #from https://www.kite.com/python/answers/how-to-get-the-number-of-seconds-since-the-epoch-from-a-datetime-object-in-python
-    currentTimeSince = (currentDateTime.timestamp() - 18000) * 1000
-    tideList = dailyTide(tidePosition, currentTime, requestDate)
-    #add for each loop for printing tide list
-    springTide = springTide(requestDate)
-    nextTide = nextTide(requestTime, tideList)
-    print(calBy)
+    requestDateTime = datetime.datetime(year, month, day) #from https://www.kite.com/python/answers/how-to-get-the-number-of-seconds-since-the-epoch-from-a-datetime-object-in-python
+    requestDateTimeSince = (requestDateTime.timestamp() - 18000) * 1000
+    tideList = dailyTide(tidePosition, currentTime, requestDateTimeSince)
+    print("The tides on " + str(day) + "/" + str(month) + "/" + str(year) + " at " + locationName + " are: ")
+    flag = True
+    i = 0
+    while(flag == True):
+        time = tideList[i][0]
+        time = time/1000
+        
+        timeHours = int(time / 3600)
+        timeMinutes = int((time % 3600) / 60)
+        #converts time to hours and minutes
+
+        if (tideList[i][1]==1): #if the next tide is a high tide
+            print("High tide at", timeHours, ":", timeMinutes)
+        else: #the next tide is a low tide
+            print("Low tide at", timeHours, ":", timeMinutes)
+
+        i+=1
+        if i >=4:
+            flag = False
+ 
+    springTide(requestDateTimeSince)
+    nextTide(totalTime, tideList)
+    print("end")
 
     
 #determines which method (location or know high/low tide time) the user would like to use to calculate the tide
@@ -79,9 +100,10 @@ def getLocation():
                 line = line.strip(" ")
                 line = line.split(",")
                 if((line[0] == location[0]) and (line[1] == location [1]) and (line[2] == location[2])):
-                    locationData[0] = timeHelper(line[3], line[4])
-                    locationData[1] = ("" + line[2] + ", " + line[1] + ", " + line[0])
-                    locationData[2] = location[5]
+                    locationData = []
+                    locationData.append(timeHelper(line[3], line[4]))
+                    locationData.append(("" + line[2] + ", " + line[1] + ", " + line[0]))
+                    locationData.append(location[5])
                     return locationData
             print("It appears that it is not in our file, you can try checking your formatting or spelling and try again or quit.")
     
@@ -110,9 +132,10 @@ def getHighLowTime(known):
         else:
             print("Input was unreadable, please follow the instructions carfully and try again.")
     if(known == "requested"):
-        returnVals[0] = int(currentTimeSince)
-        returnVals[1] = date
-        returnVals[2] = time
+        returnVals = []
+        returnVals.append(int(currentTimeSince))
+        returnVals.append(date)
+        returnVals.append(time)
         return returnVals
     return int(currentTimeSince)
 
@@ -144,8 +167,9 @@ def dailyTide(tideVal, inputTime, reqDate):
         tideType = int((reqDate - inputTime) / HALFCYCLE)
         tideType = bool((tideType + tideVal + 1) % 2)
         #determines if the first tide of the day is high or low
-
-        tides = []
+        y = 2
+        x = 4
+        tides = [[0 for j in range(y)]for i in range(x)]
         tides[0][0] = tideTime
         tides[0][1] = tideType
         #defines tides[][] and writes the time and type of the first tide of the day
@@ -187,13 +211,13 @@ def springTide(reqDate):
     #sets the times after the full moon for each relevant moon phase
 
     if(moonTimeA < fullMoon and moonTimeB > fullMoon): #is there a full moon?
-        print("there is a spring tide in effect")
+        print("There is a spring tide in effect")
     elif(moonTimeA < thirdQuart and moonTimeB > thirdQuart): #is there a third quarter moon?
-        print("there is a neap tide in effect")
+        print("There is a neap tide in effect")
     elif(moonTimeA < newMoon and moonTimeB > newMoon): #is there a new moon?
-        print("there is a spring tide in effect")
+        print("There is a spring tide in effect")
     elif(moonTimeA < firstQuart and moonTimeB > firstQuart): #is there a first quarter moon?
-        print("there is a neap tide in effect")
+        print("There is a neap tide in effect")
     
     return()
 
@@ -225,9 +249,9 @@ def nextTide(reqTime, tides):
     #converts nextTideTime to hours and minutes
 
     if (nextTideType): #if the next tide is a high tide
-        print("the next high tide is in", nextTideHours, "hours and", nextTideMinutes)
+        print("The next high tide is in", nextTideHours, "hours and", nextTideMinutes, "minutes.")
     else: #the next tide is a low tide
-        print("the next low tide is in", nextTideHours, "hours and", nextTideMinutes)
+        print("The next low tide is in", nextTideHours, "hours and", nextTideMinutes, "minutes.")
     
     return()
 
