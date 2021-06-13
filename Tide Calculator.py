@@ -2,9 +2,9 @@ import datetime
 
 FULLCYCLE = 44762156    #length of a full tide cycle (high -> low -> high) in milliseconds
 HALFCYCLE = 22381078    #length of a half tide cycle (high -> low) in milliseconds
-FIRSTMOON = 1857600000  #first full moon after Jan 1 1970 in milliseconds
-MOONCYCLE = 2551442900  #length of a full cycle of the moon in milliseconds
-DAYLENGTH = 86400000    #length of a full day in milliseconds
+FIRSTMOON = 1857600000  #first full moon after Jan 1 1970 in milliseconds (from https://www.moongiant.com/phase/1/22/1970)
+MOONCYCLE = 2551442900  #length of a full cycle of the moon in milliseconds 
+DAYLENGTH = 86400000    #length of a full day in milliseconds (from "Explanatory Supplement to the Astronomical Ephemeris", 1961, p.107)
 
 #collects the user input needed to calculate the tides based on the method they choose
 def main():
@@ -63,6 +63,7 @@ def getCalBy():
 
 
 #determines if the location being entered is a known location, if not ends the program
+#known location data obtained from https://www.tide-forecast.com/
 def getLocation():
     flag = True
     while(flag == True):
