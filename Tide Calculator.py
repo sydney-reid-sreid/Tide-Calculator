@@ -60,7 +60,8 @@ def getHighLowTime():
         else:
             print("The format was unreadable, please follow the instructions carefully and try again, or enter \"q\" to quit")
 
-            
+################################################################################################################################################################# 
+
 #returns a list of the high and low tides for a specified day
 def dailyTide(tideVal, inputTime, reqDate):
     if(reqDate >= inputTime): #checks that the requested date is after the input time being used as a reference point
